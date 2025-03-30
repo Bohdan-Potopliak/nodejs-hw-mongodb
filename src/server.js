@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-// import pino from 'pino-http';
+import pino from 'pino-http';
 import { getEnvVar } from './utils/getEnvVar.js';
 import { getContacts, getContactById } from './services/contacts.js';
 
@@ -9,15 +9,15 @@ export const startServer = () => {
 
   app.use(cors());
   app.use(express.json());
-  //   app.use(
-  //     pino({
-  //       transport: {
-  //         target: 'pino-pretty',
-  //       },
-  //     }),
-  //   );
+  app.use(
+    pino({
+      transport: {
+        target: 'pino-pretty',
+      },
+    }),
+  );
 
-  app.get('/api/contacts', async (req, res) => {
+  app.get('/contacts', async (req, res) => {
     const data = await getContacts();
     res.json({
       status: 200,
@@ -26,7 +26,7 @@ export const startServer = () => {
     });
   });
 
-  app.get('/api/contacts/:contactId', async (req, res) => {
+  app.get('/contacts/:contactId', async (req, res) => {
     const { contactId } = req.params;
     const data = await getContactById(contactId);
 
