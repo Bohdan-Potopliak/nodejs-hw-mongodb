@@ -21,6 +21,7 @@ export const upsertContact = async (id, payload, options = {}) => {
     payload,
     {
       new: true,
+      runValidators: true,
       upsert,
       includeResultMetadata: true,
     },
