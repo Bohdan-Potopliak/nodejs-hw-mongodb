@@ -2,19 +2,24 @@ import Joi from 'joi';
 import { typeList } from '../constants/contacts.js';
 
 export const addContactSchema = Joi.object({
-  name: Joi.string().required(),
-  phoneNumber: Joi.string().required(),
-  email: Joi.string(),
+  name: Joi.string().min(3).max(20).required(),
+  phoneNumber: Joi.string().min(3).max(20).required(),
+  email: Joi.string().min(3).max(20),
   isFavorite: Joi.boolean(),
   contactType: Joi.string()
+    .min(3)
+    .max(20)
     .valid(...typeList)
     .required(),
 });
 
 export const updateContactSchema = Joi.object({
-  name: Joi.string(),
-  phoneNumber: Joi.string(),
-  email: Joi.string(),
+  name: Joi.string().min(3).max(20),
+  phoneNumber: Joi.string().min(3).max(20),
+  email: Joi.string().min(3).max(20),
   isFavorite: Joi.boolean(),
-  contactType: Joi.string().valid(...typeList),
+  contactType: Joi.string()
+    .min(3)
+    .max(20)
+    .valid(...typeList),
 });

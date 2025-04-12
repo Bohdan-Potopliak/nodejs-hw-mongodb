@@ -1,9 +1,39 @@
 import { ContactCollection } from '../db/models/Contact.js';
 import mongoose from 'mongoose';
+import { calcPaginationData } from '../utils/calcPaginationData.js';
+import { sortList } from '../constants/index.js';
+
 const { Types } = mongoose;
 const { ObjectId } = Types;
 
-export const getContacts = () => ContactCollection.find();
+export const getContacts = async ({
+  page = 1,
+  perPage = 10,
+  sortBy = '_id',
+  sortOrder = sortList[0],
+  filters = {},
+}) => {
+  const skip = (page - 1) * perPage;
+
+  const data = await ContactCollection.find(filters)
+    .skip(skip)
+    .limit(perPage)
+    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 });
+
+  const totalItems = await ContactCollection.countDocuments(filters);
+
+  const paginationData = await calcPaginationData({
+    page,
+    perPage,
+    totalItems,
+  });
+
+  return {
+    data,
+    totalItems,
+    ...paginationData,
+  };
+};
 
 export const getContactById = (id) => {
   if (!ObjectId.isValid(id)) return null;
