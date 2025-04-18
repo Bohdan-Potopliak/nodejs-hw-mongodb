@@ -12,6 +12,7 @@ import { parseContactFilterParams } from '../utils/filters/parseContactFilterPar
 import createHttpError from 'http-errors';
 
 export const getContactsController = async (req, res) => {
+  const userId = req.user._id;
   const paginationParams = parsePaginationParams(req.query);
   const sortParams = parseSortParams(req.query, contactSortField);
   const filters = parseContactFilterParams(req.query);
@@ -19,6 +20,7 @@ export const getContactsController = async (req, res) => {
     ...paginationParams,
     ...sortParams,
     filters,
+    userId,
   });
   res.json({
     status: 200,
@@ -37,7 +39,8 @@ export const getContactsController = async (req, res) => {
 
 export const getContactsByIdController = async (req, res) => {
   const { contactId } = req.params;
-  const data = await getContactById(contactId);
+  const userId = req.user._id;
+  const data = await getContactById(contactId, userId);
 
   if (!data) {
     throw createHttpError(404, 'Contact not found');
@@ -51,7 +54,8 @@ export const getContactsByIdController = async (req, res) => {
 };
 
 export const addContactController = async (req, res) => {
-  const data = await addContact(req.body);
+  const userId = req.user._id;
+  const data = await addContact(req.body, userId);
 
   res.status(201).json({
     status: 201,
@@ -62,7 +66,8 @@ export const addContactController = async (req, res) => {
 
 export const patchContactsController = async (req, res) => {
   const { contactId } = req.params;
-  const result = await upsertContact(contactId, req.body);
+  const userId = req.user._id;
+  const result = await upsertContact(contactId, req.body, userId);
 
   if (!result) {
     throw createHttpError(404, 'Contact not found');
@@ -77,7 +82,8 @@ export const patchContactsController = async (req, res) => {
 
 export const deleteContactsController = async (req, res) => {
   const { contactId } = req.params;
-  const data = await deleteContactById(contactId);
+  const userId = req.user._id;
+  const data = await deleteContactById(contactId, userId);
 
   if (!data) {
     throw createHttpError(404, 'Contact not found');

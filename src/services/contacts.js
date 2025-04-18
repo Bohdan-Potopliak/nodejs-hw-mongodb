@@ -12,15 +12,19 @@ export const getContacts = async ({
   sortBy = '_id',
   sortOrder = sortList[0],
   filters = {},
+  userId,
 }) => {
   const skip = (page - 1) * perPage;
 
-  const data = await ContactCollection.find(filters)
+  const data = await ContactCollection.find({ ...filters, userId })
     .skip(skip)
     .limit(perPage)
     .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 });
 
-  const totalItems = await ContactCollection.countDocuments(filters);
+  const totalItems = await ContactCollection.countDocuments({
+    ...filters,
+    userId,
+  });
 
   const paginationData = await calcPaginationData({
     page,
@@ -37,19 +41,20 @@ export const getContacts = async ({
   };
 };
 
-export const getContactById = (id) => {
+export const getContactById = (id, userId) => {
   if (!ObjectId.isValid(id)) return null;
-  return ContactCollection.findOne({ _id: new ObjectId(id) });
+  return ContactCollection.findOne({ _id: new ObjectId(id), userId });
 };
 
-export const addContact = (payload) => ContactCollection.create(payload);
+export const addContact = (payload, userId) =>
+  ContactCollection.create({ ...payload, userId });
 
-export const upsertContact = async (id, payload, options = {}) => {
+export const upsertContact = async (id, payload, userId, options = {}) => {
   const { upsert } = options;
   if (!ObjectId.isValid(id)) return null;
 
   const rawResult = await ContactCollection.findOneAndUpdate(
-    { _id: new ObjectId(id) },
+    { _id: new ObjectId(id), userId },
     payload,
     {
       new: true,
@@ -64,7 +69,7 @@ export const upsertContact = async (id, payload, options = {}) => {
   return rawResult.value;
 };
 
-export const deleteContactById = (id) => {
+export const deleteContactById = (id, userId) => {
   if (!ObjectId.isValid(id)) return null;
-  return ContactCollection.findOneAndDelete({ _id: new ObjectId(id) });
+  return ContactCollection.findOneAndDelete({ _id: new ObjectId(id), userId });
 };
