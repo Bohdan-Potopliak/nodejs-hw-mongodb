@@ -4,6 +4,11 @@ import { handleSaveError, setUpdateSettings } from './hooks.js';
 
 const contactSchema = new Schema(
   {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -44,4 +49,4 @@ contactSchema.post('save', handleSaveError);
 contactSchema.pre('findOneAndUpdate', setUpdateSettings);
 contactSchema.post('findOneAndUpdate', handleSaveError);
 
-export const ContactCollection = model('users', contactSchema);
+export const ContactCollection = model('contacts', contactSchema);
