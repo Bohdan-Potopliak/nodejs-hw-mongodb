@@ -7,11 +7,14 @@ import {
 } from '../services/auth.js';
 
 export const registerController = async (req, res) => {
-  await registerUser(req.body);
+  const user = await registerUser(req.body);
+
+  const { password, ...safeUser } = user.toObject();
 
   res.status(201).json({
     status: 201,
     message: 'Successfully registered a user!',
+    data: safeUser,
   });
 };
 
@@ -36,7 +39,7 @@ export const loginController = async (req, res) => {
 };
 
 export const refreshSessionController = async (req, res) => {
-  const { refreshToken, sessionId } = req.cookies;
+  const { refreshToken, sessionId } = req.cookies || {};
 
   const session = await refreshSession({ refreshToken, sessionId });
 
@@ -58,7 +61,7 @@ export const refreshSessionController = async (req, res) => {
 };
 
 export const logoutController = async (req, res) => {
-  const { sessionId } = req.cookies;
+  const { sessionId } = req.cookies || {};
 
   await logoutUser(sessionId);
 
