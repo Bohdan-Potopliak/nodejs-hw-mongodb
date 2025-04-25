@@ -1,12 +1,23 @@
 import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
 import { randomBytes } from 'node:crypto';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import Handlebars from 'handlebars';
+import jwt from 'jsonwebtoken';
 import { UserCollection } from '../db/models/User.js';
 import { SessionCollection } from '../db/models/Session.js';
 import {
   accessTokenLifeTime,
   refreshTokenLifeTime,
 } from '../constants/auth.js';
+import { sendEmail } from '../services/emailService.js';
+import { getEnvVar } from '../utils/getEnvVar.js';
+import { TEMPLATES_DIR } from '../constants/index.js';
+
+const verifyEmailPath = path.join(TEMPLATES_DIR, 'verify-email.html');
+const appDomain = getEnvVar('APP_DOMAIN');
+const jwtSecret = getEnvVar('JWT_SECRET');
 
 export const registerUser = async (payload) => {
   const { email, password } = payload;
@@ -17,7 +28,38 @@ export const registerUser = async (payload) => {
 
   const hashPassword = await bcrypt.hash(password, 10);
 
-  return await UserCollection.create({ ...payload, password: hashPassword });
+  const newUser = await UserCollection.create({
+    ...payload,
+    password: hashPassword,
+  });
+
+  const token = jwt.sign({ email }, jwtSecret, {
+    expiresIn: '24h',
+  });
+
+  const templateSource = await fs.readFile(verifyEmailPath, 'utf-8');
+  const template = Handlebars.compile(templateSource);
+  const html = template({
+    verifyLink: `${appDomain}/auth/verify?token=${token}`,
+  });
+
+  const verifyEmail = {
+    to: email,
+    subject: 'Verify email',
+    html,
+  };
+  await sendEmail(verifyEmail);
+
+  return newUser;
+};
+
+export const verifyUser = (token) => {
+  try {
+    const { email } = jwt.verify(token, jwtSecret);
+    return UserCollection.findOneAndUpdate({ email }, { verify: true });
+  } catch (error) {
+    throw createHttpError(401, error.message);
+  }
 };
 
 export const loginUser = async (payload) => {
@@ -25,6 +67,10 @@ export const loginUser = async (payload) => {
   const user = await UserCollection.findOne({ email });
   if (!user) {
     throw createHttpError(401, 'Email or password invalid');
+  }
+
+  if (!user.verify) {
+    throw createHttpError(401, 'Email not verified');
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
