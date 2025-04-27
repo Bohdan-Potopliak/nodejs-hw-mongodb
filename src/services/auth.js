@@ -53,14 +53,14 @@ export const registerUser = async (payload) => {
   return newUser;
 };
 
-export const verifyUser = (token) => {
-  try {
-    const { email } = jwt.verify(token, jwtSecret);
-    return UserCollection.findOneAndUpdate({ email }, { verify: true });
-  } catch (error) {
-    throw createHttpError(401, error.message);
-  }
-};
+// export const verifyUser = (token) => {
+//   try {
+//     const { email } = jwt.verify(token, jwtSecret);
+//     return UserCollection.findOneAndUpdate({ email }, { verify: true });
+//   } catch (error) {
+//     throw createHttpError(401, error.message);
+//   }
+// };
 
 export const loginUser = async (payload) => {
   const { email, password } = payload;

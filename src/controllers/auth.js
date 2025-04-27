@@ -1,6 +1,6 @@
 import {
   registerUser,
-  verifyUser,
+  // verifyUser,
   loginUser,
   refreshSession,
   logoutUser,
@@ -21,13 +21,13 @@ export const registerController = async (req, res) => {
   });
 };
 
-export const verifyController = async (req, res) => {
-  await verifyUser(req.query.token);
+// export const verifyController = async (req, res) => {
+//   await verifyUser(req.query.token);
 
-  res.json({
-    message: 'Email verified',
-  });
-};
+//   res.json({
+//     message: 'Email verified',
+//   });
+// };
 
 export const loginController = async (req, res) => {
   const session = await loginUser(req.body);

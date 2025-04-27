@@ -9,7 +9,7 @@ import {
 } from '../validation/auth.js';
 import {
   loginController,
-  verifyController,
+  // verifyController,
   registerController,
   refreshSessionController,
   logoutController,
@@ -25,7 +25,7 @@ authRouter.post(
   ctrlWrapper(registerController),
 );
 
-authRouter.get('/verify', ctrlWrapper(verifyController));
+// authRouter.get('/verify', ctrlWrapper(verifyController));
 
 authRouter.post(
   '/login',
