@@ -10,7 +10,7 @@ import createHttpError from 'http-errors';
 import { UserCollection } from '../db/models/User.js';
 import { getEnvVar } from '../utils/getEnvVar.js';
 import { sendEmail } from '../services/emailService.js';
-import { deleteSession } from '../services/sessionService.js';
+import { deleteUserSessions } from '../services/sessionService.js';
 
 export const registerController = async (req, res) => {
   await registerUser(req.body);
@@ -137,7 +137,7 @@ export const resetPasswordController = async (req, res) => {
     user.password = password;
     await user.save();
 
-    await deleteSession(user._id);
+    await deleteUserSessions(user._id);
 
     res.status(200).json({
       status: 200,

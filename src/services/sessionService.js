@@ -9,3 +9,8 @@ export const deleteSession = async (sessionId) => {
 
   return session;
 };
+
+// Test
+export const deleteUserSessions = async (userId) => {
+  await SessionCollection.deleteMany({ userId });
+};
