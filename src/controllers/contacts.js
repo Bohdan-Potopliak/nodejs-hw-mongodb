@@ -4,9 +4,11 @@ import {
   getContactById,
   getContacts,
   upsertContact,
+  // uploadImageToCloudinary,
 } from '../services/contacts.js';
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
+import { uploadToCloudinary } from '../utils/uploadToCloudinary.js';
 import { contactSortField } from '../db/models/Contact.js';
 import { parseContactFilterParams } from '../utils/filters/parseContactFilterParams.js';
 import createHttpError from 'http-errors';
@@ -57,7 +59,11 @@ export const addContactController = async (req, res) => {
   const userId = req.user._id;
 
   if (req.file) {
-    req.body.photo = req.file.path;
+    const photoUrl = await uploadToCloudinary(
+      req.file.buffer,
+      req.file.originalname,
+    );
+    req.body.photo = photoUrl;
   }
 
   const data = await addContact(req.body, userId);
@@ -72,6 +78,15 @@ export const addContactController = async (req, res) => {
 export const patchContactsController = async (req, res) => {
   const { contactId } = req.params;
   const userId = req.user._id;
+
+  if (req.file) {
+    const photoUrl = await uploadToCloudinary(
+      req.file.buffer,
+      req.file.originalname,
+    );
+    req.body.photo = photoUrl;
+  }
+
   const result = await upsertContact(contactId, req.body, userId);
 
   if (!result) {

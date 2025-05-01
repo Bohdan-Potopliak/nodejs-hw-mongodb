@@ -11,6 +11,7 @@ export const addContactSchema = Joi.object({
     .max(20)
     .valid(...typeList)
     .required(),
+  photo: Joi.string().uri(),
 });
 
 export const updateContactSchema = Joi.object({
@@ -22,4 +23,5 @@ export const updateContactSchema = Joi.object({
     .min(3)
     .max(20)
     .valid(...typeList),
+  photo: Joi.string().uri(),
 });
