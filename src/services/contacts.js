@@ -75,16 +75,15 @@ export const deleteContactById = (id, userId) => {
   return ContactCollection.findOneAndDelete({ _id: new ObjectId(id), userId });
 };
 
-export const uploadImageToCloudinary = (fileBuffer) => {
+export const uploadImageToCloudinary = (filePath) => {
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
+    cloudinary.uploader.upload(
+      filePath,
       { resource_type: 'image' },
       (error, result) => {
         if (error) return reject(error);
         resolve(result.secure_url);
       },
     );
-
-    stream.end(fileBuffer);
   });
 };
