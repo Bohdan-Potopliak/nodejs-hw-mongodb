@@ -2,6 +2,7 @@ import { ContactCollection } from '../db/models/Contact.js';
 import mongoose from 'mongoose';
 import { calcPaginationData } from '../utils/calcPaginationData.js';
 import { sortList } from '../constants/index.js';
+import cloudinary from '../utils/cloudinary.js';
 
 const { Types } = mongoose;
 const { ObjectId } = Types;
@@ -72,4 +73,17 @@ export const upsertContact = async (id, payload, userId, options = {}) => {
 export const deleteContactById = (id, userId) => {
   if (!ObjectId.isValid(id)) return null;
   return ContactCollection.findOneAndDelete({ _id: new ObjectId(id), userId });
+};
+
+export const uploadImageToCloudinary = (filePath) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload(
+      filePath,
+      { resource_type: 'image' },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      },
+    );
+  });
 };

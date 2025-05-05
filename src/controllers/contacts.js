@@ -4,9 +4,12 @@ import {
   getContactById,
   getContacts,
   upsertContact,
+  // uploadImageToCloudinary,
 } from '../services/contacts.js';
+import fs from 'fs/promises';
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
+import { uploadToCloudinary } from '../utils/uploadToCloudinary.js';
 import { contactSortField } from '../db/models/Contact.js';
 import { parseContactFilterParams } from '../utils/filters/parseContactFilterParams.js';
 import createHttpError from 'http-errors';
@@ -55,6 +58,13 @@ export const getContactsByIdController = async (req, res) => {
 
 export const addContactController = async (req, res) => {
   const userId = req.user._id;
+
+  if (req.file) {
+    const photoUrl = await uploadToCloudinary(req.file.path);
+    req.body.photo = photoUrl;
+    await fs.unlink(req.file.path);
+  }
+
   const data = await addContact(req.body, userId);
 
   res.status(201).json({
@@ -67,6 +77,12 @@ export const addContactController = async (req, res) => {
 export const patchContactsController = async (req, res) => {
   const { contactId } = req.params;
   const userId = req.user._id;
+
+  if (req.file) {
+    const photoUrl = await uploadToCloudinary(req.file.path);
+    req.body.photo = photoUrl;
+  }
+
   const result = await upsertContact(contactId, req.body, userId);
 
   if (!result) {

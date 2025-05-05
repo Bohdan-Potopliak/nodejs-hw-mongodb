@@ -7,17 +7,27 @@ import {
 } from '../services/auth.js';
 import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
+import bcrypt from 'bcrypt';
 import { UserCollection } from '../db/models/User.js';
 import { getEnvVar } from '../utils/getEnvVar.js';
 import { sendEmail } from '../services/emailService.js';
-import { deleteSession } from '../services/sessionService.js';
+import { deleteUserSessions } from '../services/sessionService.js';
 
 export const registerController = async (req, res) => {
-  await registerUser(req.body);
+  const newUser = await registerUser(req.body);
+
+  const { _id, email, name, createdAt, updatedAt } = newUser;
 
   res.status(201).json({
     status: 201,
     message: 'Successfully registered a user!',
+    data: {
+      _id,
+      email,
+      name,
+      createdAt,
+      updatedAt,
+    },
   });
 };
 
@@ -134,10 +144,10 @@ export const resetPasswordController = async (req, res) => {
       throw createHttpError(404, 'User not found!');
     }
 
-    user.password = password;
+    user.password = await bcrypt.hash(password, 10);
     await user.save();
 
-    await deleteSession(user._id);
+    await deleteUserSessions(user._id);
 
     res.status(200).json({
       status: 200,
