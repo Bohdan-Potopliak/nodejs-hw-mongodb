@@ -4,6 +4,7 @@ import { validateBody } from '../utils/validateBody.js';
 import {
   authLoginSchema,
   authRegisterSchema,
+  // googleOAuthSchema,
   resetPasswordEmailSchema,
   resetPasswordSchema,
 } from '../validation/auth.js';
@@ -15,6 +16,8 @@ import {
   logoutController,
   resetPasswordController,
   sendResetEmailController,
+  // getGoogleAuthLinkController,
+  // signUpOrLoginWithGoogleController,
 } from '../controllers/auth.js';
 
 const authRouter = Router();
@@ -48,5 +51,16 @@ authRouter.post(
 authRouter.post('/refresh', ctrlWrapper(refreshSessionController));
 
 authRouter.post('/logout', ctrlWrapper(logoutController));
+
+// authRouter.post(
+//   '/get-google-auth-link',
+//   ctrlWrapper(getGoogleAuthLinkController),
+// );
+
+// authRouter.post(
+//   '/auth-with-google',
+//   validateBody(googleOAuthSchema),
+//   ctrlWrapper(signUpOrLoginWithGoogleController),
+// );
 
 export default authRouter;

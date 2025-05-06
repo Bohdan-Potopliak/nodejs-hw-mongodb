@@ -1,0 +1,679 @@
+дивись ось структура мого проекту
+project/
+├── docs/
+│   ├── index.html
+│   ├── openapi.yaml
+│   ├── swagger.json
+├── src/
+├── swagger/
+    ├── components/
+    │   ├── responses/
+    │   │   ├── ContactResponse.yaml
+    │   │   └── ErrorResponse.yaml
+    │   ├── schemas/
+    │   │   ├── Contact.yaml
+    │   │   ├── ContactListResponse.yaml
+    │   │   ├── CreateContactRequest.yaml
+    │   │   ├── UpdateContactRequest.yaml
+    │   │   └── ...
+    │   └── securitySchemes.yaml
+    ├── paths/
+    │   ├── contacts/
+    │   │   ├── get.yaml
+    │   │   ├── post.yaml
+    │   │   └── {contactId}/
+    │   │       ├── get.yaml
+    │   │       ├── patch.yaml
+    │   │       └── delete.yaml
+відповідно до тех завдання воно нижче
+Створіть папку swagger в корені проекту. У неї додайте папки components та paths. В папці components зберігайте частини сутностей, наприклад, опис відповідей або сутностей. В папці paths зберігайте файли документації відповідно до схеми побудови шляху. Наприклад, для роуту GET /contacts/\:contactId відповідним файлом буде /swagger/paths/contacts/{id}/get.yaml.
+
+тепер мені потрібно написати документацію
+
+ці кроки я вже зробив
+
+Крок 2
+
+Встановіть пакет @redocly/cli як Dev залежність:
+
+npm install @redocly/cli --save-dev
+
+Додайте в розділ із скриптами в package.json нові команди:
+
+{
+"scripts": {
+"build": "npm run build-docs",
+"build-docs": "redocly bundle docs/openapi.yaml --ext json -o docs/swagger.json",
+"preview-docs": "redocly preview-docs"
+}
+}
+
+Створіть файл redocly.yaml із таким вмістом:
+
+# See [https://redocly.com/docs/cli/configuration/](https://redocly.com/docs/cli/configuration/) for more information.
+
+apis:
+sample\@v1:
+root: docs/openapi.yaml
+extends:
+
+* recommended
+  rules:
+  no-unused-components: error
+  theme:
+  htmlTemplate: ./docs/index.html
+  colors:
+  primary:
+  main: '#32329f'
+  generateCodeSamples:
+  languages:
+
+  * lang: curl
+  * lang: Node.js
+  * lang: JavaScript
+
+Створіть в корні проєкту папку docs, в ній створіть файл index.html із таким контентом:
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>API Reference | ReDoc</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  {{{redocHead}}}
+</head>
+
+<body>
+  {{{redocHTML}}}
+</body>
+
+</html>
+
+Створіть файл docs/openapi.yaml з наступним вмістом:
+
+openapi: 3.1.0
+info:
+version: 1.0.0
+title: <назва вашого додатку>
+license:
+name: Apache 2.0
+url: [http://www.apache.org/licenses/LICENSE-2.0.html](http://www.apache.org/licenses/LICENSE-2.0.html)
+description:
+<опис вашого додатку>
+tags:
+
+# теги, що ви будете використовувати
+
+servers:
+
+* url: [http://localhost:3000](http://localhost:3000)
+* url: #посилання на задеплоєний сайт
+  paths:
+
+# тут будуть посилання на ендпоінти
+
+components:
+securitySchemes:
+bearerAuth:
+type: http
+scheme: bearer
+
+Запустіть команду npm run preview-docs, щоб бачити внесені зміни.
+
+НА РАЗІ ПОТРІБНО ЗРОБИТИ НАСТУПНЕ
+Крок 4
+
+Додайте документацію для роута GET /contacts/\:contactId у відповідний файл. У ній має бути:
+
+tags - тег, до якого цей ендпоінт належить (Contacts)
+summary - короткий опис ендпоінта
+operationId - унікальний ідентифікатор операції
+description - більш розгорнутий опис
+security - зазначте, що ми використовуємо авторизацію за допомогою Bearer токену
+parameters - параметри запиту (для цього ендпоінту - параметр шляху \:contactId)
+responses - варіанти відповіді
+200
+404
+Додайте посилання на цей ендпоінт до файлу ./docs/openapi.yaml.
+
+Крок 5
+
+Додайте за тим самим принципом документацію для ендпоінтів:
+
+GET /contacts
+PATCH /contacts/\:contactId
+DELETE /contacts/\:contactId
+POST /contacts
+Не забудьте описати query параметри для GET /contacts та body для запитів, що його містять.
+
+так давай зразу для усіх роутів зараз ще раз кину весь код
+src/routers/contacts.js
+import { Router } from 'express';
+import upload from '../utils/multer.js';
+import {
+getContactsByIdController,
+getContactsController,
+addContactController,
+patchContactsController,
+deleteContactsController,
+} from '../controllers/contacts.js';
+import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { validateBody } from '../utils/validateBody.js';
+import {
+addContactSchema,
+updateContactSchema,
+} from '../validation/contacts.js';
+import { isValidId } from '../middlewares/isValidId.js';
+import { authenticate } from '../middlewares/authenticate.js';
+
+const contactsRouter = Router();
+
+contactsRouter.use(authenticate);
+
+contactsRouter.get('/', ctrlWrapper(getContactsController));
+
+contactsRouter.get(
+'/\:contactId',
+isValidId,
+ctrlWrapper(getContactsByIdController),
+);
+
+contactsRouter.post(
+'/',
+upload.single('photo'),
+validateBody(addContactSchema),
+ctrlWrapper(addContactController),
+);
+
+contactsRouter.patch(
+'/\:contactId',
+isValidId,
+upload.single('photo'),
+validateBody(updateContactSchema),
+ctrlWrapper(patchContactsController),
+);
+
+contactsRouter.delete(
+'/\:contactId',
+isValidId,
+ctrlWrapper(deleteContactsController),
+);
+
+export default contactsRouter;
+
+src/utils/ctrlWrapper.js
+export const ctrlWrapper = (ctrl) => {
+const func = async (req, res, next) => {
+try {
+await ctrl(req, res, next);
+} catch (error) {
+next(error);
+}
+};
+return func;
+};
+
+src/validation/contacts.js
+import Joi from 'joi';
+import { typeList } from '../constants/contacts.js';
+
+export const addContactSchema = Joi.object({
+name: Joi.string().min(3).max(20).required(),
+phoneNumber: Joi.string().min(3).max(20).required(),
+email: Joi.string().email().min(3).max(20),
+isFavorite: Joi.boolean(),
+contactType: Joi.string()
+.min(3)
+.max(20)
+.valid(...typeList)
+.required(),
+photo: Joi.string().uri(),
+});
+
+export const updateContactSchema = Joi.object({
+name: Joi.string().min(3).max(20),
+phoneNumber: Joi.string().min(3).max(20),
+email: Joi.string().email().min(3).max(20),
+isFavorite: Joi.boolean(),
+contactType: Joi.string()
+.min(3)
+.max(20)
+.valid(...typeList),
+photo: Joi.string().uri(),
+});
+
+src/utils/validateBody.js
+import createHttpError from 'http-errors';
+
+export const validateBody = (schema) => {
+return async (req, res, next) => {
+try {
+await schema.validateAsync(req.body, { abortEarly: false });
+next();
+} catch (error) {
+next(createHttpError(400, error.message));
+}
+};
+};
+
+src/middlewares/isValidId.js
+import { isValidObjectId } from 'mongoose';
+import createHttpError from 'http-errors';
+
+export const isValidId = (req, res, next) => {
+const { contactId } = req.params;
+
+if (!isValidObjectId(contactId)) {
+return next(createHttpError(400, `${contactId} is not a valid id`));
+}
+
+next();
+};
+
+src/middlewares/authenticate.js
+import createHttpError from 'http-errors';
+import { SessionCollection } from '../db/models/Session.js';
+
+export const authenticate = async (req, res, next) => {
+const { authorization = '' } = req.headers;
+
+const \[type, token] = authorization.split(' ');
+
+if (type !== 'Bearer' || !token) {
+return next(createHttpError(401, 'Not authorized'));
+}
+
+const session = await SessionCollection.findOne({
+accessToken: token,
+}).populate('userId');
+
+if (!session) {
+return next(createHttpError(401, 'Invalid access token'));
+}
+
+const isExpired =
+Date.now() > new Date(session.accessTokenValidUntil).getTime();
+
+if (isExpired) {
+return next(createHttpError(401, 'Access token expired'));
+}
+
+req.user = session.userId;
+
+next();
+};
+
+src/controllers/contacts.js
+import {
+addContact,
+deleteContactById,
+getContactById,
+getContacts,
+upsertContact,
+// uploadImageToCloudinary,
+} from '../services/contacts.js';
+import fs from 'fs/promises';
+import { parsePaginationParams } from '../utils/parsePaginationParams.js';
+import { parseSortParams } from '../utils/parseSortParams.js';
+import { uploadToCloudinary } from '../utils/uploadToCloudinary.js';
+import { contactSortField } from '../db/models/Contact.js';
+import { parseContactFilterParams } from '../utils/filters/parseContactFilterParams.js';
+import createHttpError from 'http-errors';
+
+export const getContactsController = async (req, res) => {
+const userId = req.user.\_id;
+const paginationParams = parsePaginationParams(req.query);
+const sortParams = parseSortParams(req.query, contactSortField);
+const filters = parseContactFilterParams(req.query);
+const data = await getContacts({
+...paginationParams,
+...sortParams,
+filters,
+userId,
+});
+res.json({
+status: 200,
+message: 'Successfully found contacts!',
+data: {
+data: data.data,
+page: data.page,
+perPage: data.perPage,
+totalItems: data.totalItems,
+totalPages: data.totalPages,
+hasPreviousPage: data.hasPreviousPage,
+hasNextPage: data.hasNextPage,
+},
+});
+};
+
+export const getContactsByIdController = async (req, res) => {
+const { contactId } = req.params;
+const userId = req.user.\_id;
+const data = await getContactById(contactId, userId);
+
+if (!data) {
+throw createHttpError(404, 'Contact not found');
+}
+
+res.json({
+status: 200,
+message: `Successfully found contact with id ${contactId}!`,
+data,
+});
+};
+
+export const addContactController = async (req, res) => {
+const userId = req.user.\_id;
+
+if (req.file) {
+const photoUrl = await uploadToCloudinary(req.file.path);
+req.body.photo = photoUrl;
+await fs.unlink(req.file.path);
+}
+
+const data = await addContact(req.body, userId);
+
+res.status(201).json({
+status: 201,
+message: 'Successfully created a contact!',
+data,
+});
+};
+
+export const patchContactsController = async (req, res) => {
+const { contactId } = req.params;
+const userId = req.user.\_id;
+
+if (req.file) {
+const photoUrl = await uploadToCloudinary(req.file.path);
+req.body.photo = photoUrl;
+}
+
+const result = await upsertContact(contactId, req.body, userId);
+
+if (!result) {
+throw createHttpError(404, 'Contact not found');
+}
+
+res.json({
+status: 200,
+message: 'Successfully patched a contact!',
+data: result,
+});
+};
+
+export const deleteContactsController = async (req, res) => {
+const { contactId } = req.params;
+const userId = req.user.\_id;
+const data = await deleteContactById(contactId, userId);
+
+if (!data) {
+throw createHttpError(404, 'Contact not found');
+}
+
+res.status(204).send();
+};
+
+src/utils/parsePaginationParams.js
+const parseNumber = (value, defaultValue) => {
+if (typeof value !== 'string') return defaultValue;
+
+const parsedValue = parseInt(value);
+if (Number.isNaN(parsedValue)) return defaultValue;
+
+return parsedValue;
+};
+export const parsePaginationParams = ({ page, perPage }) => {
+const parsedPage = parseNumber(page, 1);
+const parsedPerPage = parseNumber(perPage, 10);
+
+return {
+page: parsedPage,
+perPage: parsedPerPage,
+};
+};
+
+src/utils/parseSortParams.js
+import { sortList } from '../constants/index.js';
+export const parseSortParams = ({ sortBy, sortOrder }, sortFields) => {
+const parsedSortOrder = sortList.includes(sortOrder)
+? sortOrder
+: sortList\[0];
+const parseSortBy = sortFields.includes(sortBy) ? sortBy : '\_id';
+
+return {
+sortBy: parseSortBy,
+sortOrder: parsedSortOrder,
+};
+};
+
+src/utils/uploadToCloudinary.js
+import cloudinary from './cloudinary.js';
+
+export const uploadToCloudinary = async (filePath) => {
+const result = await cloudinary.uploader.upload(filePath, {
+resource\_type: 'image',
+});
+return result.secure\_url;
+};
+
+src/utils/filters/parseContactFilterParams.js
+export const parseContactFilterParams = ({ type, isFavorite }) => {
+const filters = {};
+
+if (type) {
+filters.contactType = type;
+}
+
+if (isFavorite !== undefined) {
+filters.isFavorite = isFavorite === 'true';
+}
+
+return filters;
+};
+
+src/db/models/Contact.js
+import { Schema, model } from 'mongoose';
+import { typeList } from '../../constants/contacts.js';
+import { handleSaveError, setUpdateSettings } from './hooks.js';
+
+const contactSchema = new Schema(
+{
+userId: {
+type: Schema.Types.ObjectId,
+ref: 'users',
+required: true,
+},
+name: {
+type: String,
+required: true,
+},
+phoneNumber: {
+type: String,
+required: true,
+},
+email: {
+type: String,
+},
+isFavorite: {
+type: Boolean,
+default: false,
+},
+contactType: {
+type: String,
+enum: typeList,
+required: true,
+default: typeList\[2],
+},
+photo: {
+type: String,
+required: false,
+},
+},
+{
+timestamps: true,
+versionKey: false,
+},
+);
+
+export const contactSortField = \[
+'name',
+'phoneNumber',
+'email',
+'isFavorite',
+'contactType',
+];
+
+contactSchema.post('save', handleSaveError);
+contactSchema.pre('findOneAndUpdate', setUpdateSettings);
+contactSchema.post('findOneAndUpdate', handleSaveError);
+
+export const ContactCollection = model('contacts', contactSchema);
+
+src/constants/contact.js
+export const typeList = \['work', 'home', 'personal'];
+
+src/db/models/hooks.js
+export const handleSaveError = (error, doc, next) => {
+const { code, name } = error;
+error.status = code === 11000 && name === 'MongoServerError' ? 409 : 400;
+next();
+};
+
+export const setUpdateSettings = function (next) {
+this.options.new = true;
+this.options.runValidators = true;
+next();
+};
+
+src/services/contacts.js
+import { ContactCollection } from '../db/models/Contact.js';
+import mongoose from 'mongoose';
+import { calcPaginationData } from '../utils/calcPaginationData.js';
+import { sortList } from '../constants/index.js';
+import cloudinary from '../utils/cloudinary.js';
+
+const { Types } = mongoose;
+const { ObjectId } = Types;
+
+export const getContacts = async ({
+page = 1,
+perPage = 10,
+sortBy = '\_id',
+sortOrder = sortList\[0],
+filters = {},
+userId,
+}) => {
+const skip = (page - 1) \* perPage;
+
+const data = await ContactCollection.find({ ...filters, userId })
+.skip(skip)
+.limit(perPage)
+.sort({ \[sortBy]: sortOrder === 'asc' ? 1 : -1 });
+
+const totalItems = await ContactCollection.countDocuments({
+...filters,
+userId,
+});
+
+const paginationData = await calcPaginationData({
+page,
+perPage,
+totalItems,
+});
+
+return {
+data,
+page,
+perPage,
+totalItems,
+...paginationData,
+};
+};
+
+export const getContactById = (id, userId) => {
+if (!ObjectId.isValid(id)) return null;
+return ContactCollection.findOne({ \_id: new ObjectId(id), userId });
+};
+
+export const addContact = (payload, userId) =>
+ContactCollection.create({ ...payload, userId });
+
+export const upsertContact = async (id, payload, userId, options = {}) => {
+const { upsert } = options;
+if (!ObjectId.isValid(id)) return null;
+
+const rawResult = await ContactCollection.findOneAndUpdate(
+{ \_id: new ObjectId(id), userId },
+payload,
+{
+new: true,
+runValidators: true,
+upsert,
+includeResultMetadata: true,
+},
+);
+
+if (!rawResult || !rawResult.value) return null;
+
+return rawResult.value;
+};
+
+export const deleteContactById = (id, userId) => {
+if (!ObjectId.isValid(id)) return null;
+return ContactCollection.findOneAndDelete({ \_id: new ObjectId(id), userId });
+};
+
+export const uploadImageToCloudinary = (filePath) => {
+return new Promise((resolve, reject) => {
+cloudinary.uploader.upload(
+filePath,
+{ resource\_type: 'image' },
+(error, result) => {
+if (error) return reject(error);
+resolve(result.secure\_url);
+},
+);
+});
+};
+
+src/utils/calcPaginationData.js
+export const calcPaginationData = ({ page, perPage, totalItems }) => {
+const totalPages = Math.ceil(totalItems / perPage);
+const hasPreviousPage = page > 1;
+const hasNextPage = page < totalPages;
+
+return {
+totalPages,
+hasPreviousPage,
+hasNextPage,
+};
+};
+
+src/constants/index.js
+import path from 'node\:path';
+
+export const sortList = \['asc', 'desc'];
+export const TEMPLATES\_DIR = path.resolve('src', 'templates');
+
+src/utils/cloudinary.js
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
+dotenv.config();
+
+cloudinary.config({
+cloud\_name: process.env.CLOUDINARY\_CLOUD\_NAME,
+api\_key: process.env.CLOUDINARY\_API\_KEY,
+api\_secret: process.env.CLOUDINARY\_API\_SECRET,
+});
+
+export default cloudinary;

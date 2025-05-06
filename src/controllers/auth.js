@@ -4,6 +4,8 @@ import {
   loginUser,
   refreshSession,
   logoutUser,
+  getGoogleOAuthLink,
+  loginOrSignUpWithGoogle,
 } from '../services/auth.js';
 import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
@@ -125,6 +127,7 @@ export const sendResetEmailController = async (req, res) => {
       data: {},
     });
   } catch (error) {
+    console.log(error);
     throw createHttpError(
       500,
       'Failed to send the email, please try again later.',
@@ -163,4 +166,27 @@ export const resetPasswordController = async (req, res) => {
     }
     throw error;
   }
+};
+
+export const getGoogleAuthLinkController = async (req, res) => {
+  const oAuthLink = getGoogleOAuthLink();
+
+  res.status(200).json({
+    status: 200,
+    message: 'Google OAuth link retrieved successfully!',
+    data: {
+      link: oAuthLink,
+    },
+  });
+};
+
+export const signUpOrLoginWithGoogleController = async (req, res) => {
+  const { code } = req.body;
+  const session = await loginOrSignUpWithGoogle(code);
+
+  res.status(200).json({
+    status: 200,
+    message: 'Successfully logged in an user with Google OAuth!',
+    data: { accessToken: session.accessToken },
+  });
 };

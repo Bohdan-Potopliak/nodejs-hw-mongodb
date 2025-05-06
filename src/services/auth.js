@@ -14,6 +14,10 @@ import {
 import { sendEmail } from '../services/emailService.js';
 import { getEnvVar } from '../utils/getEnvVar.js';
 import { TEMPLATES_DIR } from '../constants/index.js';
+import {
+  generateGoogleOAuthLink,
+  verifyToken,
+} from '../utils/googleOAuth2Client.js';
 
 const verifyEmailPath = path.join(TEMPLATES_DIR, 'verify-email.html');
 const appDomain = getEnvVar('APP_DOMAIN');
@@ -118,4 +122,36 @@ export const logoutUser = async (sessionId) => {
   }
 
   await SessionCollection.findByIdAndDelete(sessionId);
+};
+
+export const getGoogleOAuthLink = () => {
+  return generateGoogleOAuthLink();
+};
+
+export const loginOrSignUpWithGoogle = async (code) => {
+  const tokenPayload = await verifyToken(code);
+
+  const { email } = tokenPayload;
+
+  let user = await UserCollection.findOne({ email });
+  if (!user) {
+    user = await UserCollection.create({
+      name: tokenPayload.name,
+      email,
+      password: randomBytes(30).toString('base64'),
+    });
+  }
+
+  await SessionCollection.deleteMany({ userId: user._id });
+
+  const newAccessToken = randomBytes(30).toString('base64');
+  const newRefreshToken = randomBytes(30).toString('base64');
+
+  return SessionCollection.create({
+    userId: user._id,
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+    accessTokenValidUntil: Date.now() + accessTokenLifeTime,
+    refreshTokenValidUntil: Date.now() + refreshTokenLifeTime,
+  });
 };

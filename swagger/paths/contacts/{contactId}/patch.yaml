@@ -1,0 +1,40 @@
+tags:
+  - Contacts
+summary: Update a specific contact
+operationId: patchContact
+description: Update an existing contact by its ID for the authenticated user. You can modify the contact's fields, including uploading a new photo.
+security:
+  - bearerAuth: []
+parameters:
+  - in: path
+    name: contactId
+    description: The ID of the contact to update
+    required: true
+    schema:
+      type: string
+requestBody:
+  required: true
+  content:
+    multipart/form-data:
+      schema:
+        $ref: '../../../components/schemas/UpdateContactRequest.yaml'
+responses:
+  200:
+    description: Successfully updated the contact
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: integer
+              example: 200
+            message:
+              type: string
+              example: Successfully patched a contact!
+            data:
+              $ref: ../../../components/schemas/Contact.yaml
+  404:
+    description: Contact not found
+  401:
+    description: Unauthorized

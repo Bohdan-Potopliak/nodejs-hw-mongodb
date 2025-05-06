@@ -1,0 +1,33 @@
+tags:
+  - Contacts
+summary: Add a new contact
+operationId: addContact
+description: Add a new contact for the authenticated user. A photo can be uploaded along with the contact information.
+security:
+  - bearerAuth: []
+requestBody:
+  required: true
+  content:
+    multipart/form-data:
+      schema:
+        $ref: '../../components/schemas/CreateContactRequest.yaml'
+responses:
+  201:
+    description: Successfully created a contact
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: integer
+              example: 201
+            message:
+              type: string
+              example: Successfully created a contact!
+            data:
+              $ref: '../../components/schemas/Contact.yaml'
+  400:
+    description: Invalid input data
+  401:
+    description: Unauthorized
