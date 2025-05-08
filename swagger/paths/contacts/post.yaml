@@ -10,7 +10,29 @@ requestBody:
   content:
     multipart/form-data:
       schema:
-        $ref: '../../components/schemas/CreateContactRequest.yaml'
+        type: object
+        properties:
+          name:
+            type: string
+          phoneNumber:
+            type: string
+          email:
+            type: string
+          isFavorite:
+            type: boolean
+          contactType:
+            type: string
+            enum:
+              - work
+              - home
+              - personal
+          photo:
+            type: string
+            format: binary
+        required:
+          - name
+          - phoneNumber
+          - contactType
 responses:
   201:
     description: Successfully created a contact
@@ -28,6 +50,8 @@ responses:
             data:
               $ref: '../../components/schemas/Contact.yaml'
   400:
-    description: Invalid input data
+    $ref: '../../components/responses/ErrorResponse.yaml'
   401:
     description: Unauthorized
+  500:
+    description: Internal server error

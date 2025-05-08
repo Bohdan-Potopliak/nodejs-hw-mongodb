@@ -25,3 +25,8 @@ properties:
   photo:
     type: string
     example: 'https://res.cloudinary.com/your-cloud-name/image/upload/v1/photo.jpg'
+required:
+  - _id
+  - name
+  - phoneNumber
+  - contactType

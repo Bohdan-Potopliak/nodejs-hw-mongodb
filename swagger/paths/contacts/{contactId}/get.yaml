@@ -27,8 +27,12 @@ responses:
               type: string
               example: Successfully found contact with id {contactId}!
             data:
-              $ref: ../../../components/schemas/Contact.yaml
-  404:
-    description: Contact not found
+              $ref: '../../../components/schemas/Contact.yaml'
+  400:
+    $ref: '../../../components/responses/ErrorResponse.yaml'
   401:
     description: Unauthorized
+  404:
+    description: Contact not found
+  500:
+    description: Internal server error

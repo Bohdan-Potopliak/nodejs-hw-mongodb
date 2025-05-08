@@ -40,9 +40,3 @@ components:
   schemas:
     Contact:
       $ref: '../swagger/components/schemas/Contact.yaml'
-    ContactListResponse:
-      $ref: '../swagger/components/schemas/ContactListResponse.yaml'
-    CreateContactRequest:
-      $ref: '../swagger/components/schemas/CreateContactRequest.yaml'
-    UpdateContactRequest:
-      $ref: '../swagger/components/schemas/UpdateContactRequest.yaml'

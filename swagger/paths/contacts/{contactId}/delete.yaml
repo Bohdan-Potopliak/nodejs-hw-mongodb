@@ -16,7 +16,11 @@ responses:
   204:
     description: Successfully deleted the contact
     content: {}
+  400:
+    $ref: '../../../components/responses/ErrorResponse.yaml'
   404:
     description: Contact not found
   401:
     description: Unauthorized
+  500:
+    description: Internal server error
