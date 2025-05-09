@@ -193,7 +193,38 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/CreateContactRequest"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "phoneNumber": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "isFavorite": {
+                    "type": "boolean"
+                  },
+                  "contactType": {
+                    "type": "string",
+                    "enum": [
+                      "work",
+                      "home",
+                      "personal"
+                    ]
+                  },
+                  "photo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "name",
+                  "phoneNumber",
+                  "contactType"
+                ]
               }
             }
           }
@@ -223,10 +254,13 @@
             }
           },
           "400": {
-            "description": "Invalid input data"
+            "$ref": "#/components/responses/ErrorResponse"
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
@@ -279,11 +313,17 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
           "401": {
             "description": "Unauthorized"
           },
           "404": {
             "description": "Contact not found"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       },
@@ -315,7 +355,38 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateContactRequest"
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": "+1234567890"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "john.doe@example.com"
+                  },
+                  "isFavorite": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "contactType": {
+                    "type": "string",
+                    "enum": [
+                      "work",
+                      "home",
+                      "personal"
+                    ],
+                    "example": "work"
+                  },
+                  "photo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
               }
             }
           }
@@ -344,11 +415,17 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
           "401": {
             "description": "Unauthorized"
           },
           "404": {
             "description": "Contact not found"
+          },
+          "500": {
+            "$ref": "#/components/responses/ErrorResponse"
           }
         }
       },
@@ -380,11 +457,17 @@
             "description": "Successfully deleted the contact",
             "content": {}
           },
+          "400": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
           "401": {
             "description": "Unauthorized"
           },
           "404": {
             "description": "Contact not found"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
@@ -471,104 +554,13 @@
             "type": "string",
             "example": "https://res.cloudinary.com/your-cloud-name/image/upload/v1/photo.jpg"
           }
-        }
-      },
-      "ContactListResponse": {
-        "type": "object",
-        "properties": {
-          "contacts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Contact"
-            }
-          },
-          "total": {
-            "type": "integer",
-            "example": 50
-          },
-          "page": {
-            "type": "integer",
-            "example": 1
-          },
-          "limit": {
-            "type": "integer",
-            "example": 10
-          }
         },
         "required": [
-          "contacts",
-          "total",
-          "page",
-          "limit"
+          "_id",
+          "name",
+          "phoneNumber",
+          "contactType"
         ]
-      },
-      "CreateContactRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "John Doe"
-          },
-          "phoneNumber": {
-            "type": "string",
-            "example": "+1234567890"
-          },
-          "email": {
-            "type": "string",
-            "example": "john.doe@example.com"
-          },
-          "isFavorite": {
-            "type": "boolean",
-            "example": true
-          },
-          "contactType": {
-            "type": "string",
-            "enum": [
-              "work",
-              "home",
-              "personal"
-            ],
-            "example": "work"
-          },
-          "photo": {
-            "type": "string",
-            "example": "https://res.cloudinary.com/your-cloud-name/image/upload/v1/photo.jpg"
-          }
-        }
-      },
-      "UpdateContactRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "John Doe"
-          },
-          "phoneNumber": {
-            "type": "string",
-            "example": "+1234567890"
-          },
-          "email": {
-            "type": "string",
-            "example": "john.doe@example.com"
-          },
-          "isFavorite": {
-            "type": "boolean",
-            "example": true
-          },
-          "contactType": {
-            "type": "string",
-            "enum": [
-              "work",
-              "home",
-              "personal"
-            ],
-            "example": "work"
-          },
-          "photo": {
-            "type": "string",
-            "example": "https://res.cloudinary.com/your-cloud-name/image/upload/v1/photo.jpg"
-          }
-        }
       }
     }
   }
