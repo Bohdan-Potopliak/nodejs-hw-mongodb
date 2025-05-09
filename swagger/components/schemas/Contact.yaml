@@ -3,6 +3,9 @@ properties:
   _id:
     type: string
     example: '60b87c6e3f5e0b54d5cbe317'
+  userId:
+    type: string
+    example: '66138e13f3de231234567890'
   name:
     type: string
     example: 'John Doe'
@@ -27,6 +30,7 @@ properties:
     example: 'https://res.cloudinary.com/your-cloud-name/image/upload/v1/photo.jpg'
 required:
   - _id
+  - userId
   - name
   - phoneNumber
   - contactType
